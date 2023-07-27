@@ -1,36 +1,32 @@
-import {
-  Counter
-} from './domain/counter'
+import { v4 as uuidv4 } from "uuid";
+import { InternalTrackerInfo } from "./core/tracker/trackerInfo";
 
-function createUniqueIdentifier(salt: string, secret: string, domain: string, ip: string, userAgent: string) {
+import Tracker from "./core/tracker/tracker";
+import TrackerReaderImpl from "./infrastructure/tracker/trackerReaderImpl";
+import TrackerStoreImpl from "./infrastructure/tracker/trackerStoreImpl";
+import TrackerServiceImpl from "./core/tracker/trackerServiceImpl";
 
-  const saltCounter = Counter.createWithSalt(ip, domain, userAgent, salt);
-  const secretCounter = Counter.createWithSecret(ip, domain, userAgent, secret);
+(() => {
+  const userInfo = new InternalTrackerInfo(
+    document.domain,
+    uuidv4(),
+    navigator.userAgent
+  );
 
-  const id1 = saltCounter.getUserIdWithSalt();
-  const id2 = secretCounter.getUserIdWithSecret();
+  const tracker = Tracker.init(userInfo, "123456");
+  const command = tracker.command();
 
-  localStorage.setItem('uniqueIdWithSalt', id1);
-  localStorage.setItem('uniqueIdWithSecret', id2);
+  const trackerService = TrackerServiceImpl.create(
+    new TrackerReaderImpl(command),
+    new TrackerStoreImpl(command)
+  );
+  trackerService.registerTrackerInfo();
 
-  return {
-    idWithSalt: id1,
-    idWithSecret: id2
-  };
-}
+  window.trackerService = trackerService;
 
-function getUniqueIdentifier() {
-  const idWithSalt = localStorage.getItem('uniqueIdWithSalt');
-  const idWithSecret = localStorage.getItem('uniqueIdWithSecret');
-  
-  return {
-      idWithSalt: idWithSalt,
-      idWithSecret: idWithSecret
-  };
-}
-
-const uniqueIds = createUniqueIdentifier('your_salt', 'your_secret', 'example.com', '1.1.1.1', 'Mozilla/5.0');
-console.log(uniqueIds);
-
-const retrievedIds = getUniqueIdentifier();
-console.log(retrievedIds);
+  // UUID -> LocalStorage
+  console.log(
+    JSON.stringify(window.trackerService.getTrackerInfo()) +
+      "서비스 생성 완료"
+  );  
+})();

@@ -1,13 +1,16 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
-    "sourceMap": true,
-    "noImplicitAny": true,
-    "module": "commonjs",
     "target": "es5",
-    "jsx": "react",
-    "allowJs": true
+    "module": "CommonJS",
+    "sourceMap": true,
+    "outDir": "./dist/",
+    "noImplicitAny": true,
+    "allowJs": true,
+    "stripInternal": true
   },
+  "types": [
+    "./node_modules/user-agent-data-types"
+  ],
   "files": [
     "src/index.ts"
   ],
